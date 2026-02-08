@@ -29,8 +29,7 @@ CREATE TABLE emails (
     body_json JSONB NOT NULL,
     received_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     attachment_count INTEGER DEFAULT 0,
-    attachments JSONB DEFAULT '[]'::jsonb,
-    CONSTRAINT emails_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    attachments JSONB DEFAULT '[]'::jsonb
 );
 
 -- Settings table
@@ -48,9 +47,7 @@ CREATE TABLE webhook_logs (
     webhook_url TEXT NOT NULL,
     status_code INTEGER,
     response_body TEXT,
-    attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT webhook_logs_user_id_fkey FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT webhook_logs_email_id_fkey FOREIGN KEY (email_id) REFERENCES emails(id) ON DELETE CASCADE
+    attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes for performance
