@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Inbound - Inbox</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="inbox-container">
+        <header class="inbox-header">
+            <div class="header-content">
+                <h1>Open Inbound</h1>
+                <div class="header-actions">
+                    <span id="userEmail" class="user-email"></span>
+                    <button id="logoutBtn" class="btn btn-secondary btn-small">Logout</button>
+                    <button id="refreshBtn" class="btn btn-secondary btn-small">Refresh</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="inbox-main">
+            <div class="inbox-content">
+                <div class="inbox-header-bar">
+                    <h2>Inbox</h2>
+                    <div id="emailCount" class="email-count"></div>
+                </div>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="loading-state">
+                    <p>Loading emails...</p>
+                </div>
+
+                <!-- Empty State -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <p>Your inbox is empty.</p>
+                    <p class="empty-subtitle">Emails sent to your address will appear here.</p>
+                </div>
+
+                <!-- Email List -->
+                <div id="emailList" class="email-list"></div>
+
+                <!-- Pagination -->
+                <div id="pagination" class="pagination" style="display: none;">
+                    <button id="prevPage" class="btn btn-secondary btn-small">Previous</button>
+                    <span id="pageInfo" class="page-info"></span>
+                    <button id="nextPage" class="btn btn-secondary btn-small">Next</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Email Detail Modal -->
+    <div id="emailModal" class="modal" style="display: none;">
+        <div class="modal-content email-modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <div id="emailDetail" class="email-detail">
+                <!-- Email content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/inbox.js"></script>
+</body>
+</html>

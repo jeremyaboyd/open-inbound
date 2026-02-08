@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Inbound - Admin</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1>Open Inbound Admin</h1>
+            <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+        </header>
+
+        <nav class="admin-nav">
+            <button class="nav-btn active" data-section="users">Users</button>
+            <button class="nav-btn" data-section="settings">Settings</button>
+        </nav>
+
+        <main class="admin-content">
+            <!-- Users Section -->
+            <section id="usersSection" class="admin-section active">
+                <div class="section-header">
+                    <h2>Users & Inboxes</h2>
+                    <button id="addUserBtn" class="btn btn-primary">Add User</button>
+                </div>
+                <div id="usersList" class="users-list"></div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settingsSection" class="admin-section">
+                <div class="section-header">
+                    <h2>System Settings</h2>
+                </div>
+                <form id="settingsForm" class="settings-form">
+                    <div class="form-group">
+                        <label for="defaultRetentionDays">Default Retention Period (days)</label>
+                        <input type="number" id="defaultRetentionDays" name="defaultRetentionDays" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="registrationEnabled">User Registration</label>
+                        <select id="registrationEnabled" name="registrationEnabled">
+                            <option value="true">Enabled</option>
+                            <option value="false">Disabled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="s3Type">S3 Storage Type</label>
+                        <select id="s3Type" name="s3Type">
+                            <option value="none">None</option>
+                            <option value="local">Local (MinIO)</option>
+                            <option value="remote">Remote S3</option>
+                            <option value="database">Database (Base64)</option>
+                        </select>
+                    </div>
+                    <div id="s3Config" style="display: none;">
+                        <div class="form-group">
+                            <label for="s3Endpoint">S3 Endpoint</label>
+                            <input type="text" id="s3Endpoint" name="s3Endpoint" placeholder="http://localhost:9000">
+                        </div>
+                        <div class="form-group">
+                            <label for="s3AccessKey">Access Key</label>
+                            <input type="text" id="s3AccessKey" name="s3AccessKey">
+                        </div>
+                        <div class="form-group">
+                            <label for="s3SecretKey">Secret Key</label>
+                            <input type="password" id="s3SecretKey" name="s3SecretKey">
+                        </div>
+                        <div class="form-group">
+                            <label for="s3Bucket">Bucket Name</label>
+                            <input type="text" id="s3Bucket" name="s3Bucket" value="attachments">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <!-- User Modal -->
+    <div id="userModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Add User</h2>
+            <form id="userForm">
+                <input type="hidden" id="userId">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="domain">Domain</label>
+                    <input type="text" id="domain" name="domain" required>
+                </div>
+                <div class="form-group" id="passwordGroup">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="apiAccessEnabled" checked>
+                        API Access Enabled
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="webhookEnabled">
+                        Webhook Enabled
+                    </label>
+                </div>
+                <div class="form-group" id="webhookUrlGroup" style="display: none;">
+                    <label for="webhookUrl">Webhook URL</label>
+                    <input type="url" id="webhookUrl" name="webhookUrl" placeholder="https://example.com/webhook">
+                </div>
+                <div class="form-group">
+                    <label for="retentionDays">Retention Period (days)</label>
+                    <input type="number" id="retentionDays" name="retentionDays" min="1" value="30">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="attachmentsEnabled" checked>
+                        Attachments Enabled
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="bannedUntil">Banned Until (optional)</label>
+                    <input type="datetime-local" id="bannedUntil" name="bannedUntil">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/admin.js"></script>
+</body>
+</html>

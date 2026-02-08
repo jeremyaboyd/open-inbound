@@ -1,0 +1,107 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: open-inbound-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-openinbound}
+      POSTGRES_USER: ${POSTGRES_USER:-openinbound}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-openinbound}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - open-inbound-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: open-inbound-minio
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - open-inbound-network
+    profiles:
+      - s3-local
+
+  smtp-service:
+    build:
+      context: ./smtp-service
+      dockerfile: Dockerfile
+    container_name: open-inbound-smtp
+    environment:
+      SMTP_HOST: ${SMTP_HOST:-0.0.0.0}
+      SMTP_PORT: ${SMTP_PORT:-25}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-openinbound}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-openinbound}
+      S3_TYPE: ${S3_TYPE:-none}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_BUCKET: ${S3_BUCKET:-attachments}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      HTTP_API_URL: http://http-api:${HTTP_PORT:-3000}
+    ports:
+      - "${SMTP_PORT:-25}:25"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      http-api:
+        condition: service_started
+    networks:
+      - open-inbound-network
+    restart: unless-stopped
+
+  http-api:
+    build:
+      context: ./http-api
+      dockerfile: Dockerfile
+    container_name: open-inbound-http
+    environment:
+      HTTP_HOST: ${HTTP_HOST:-0.0.0.0}
+      HTTP_PORT: ${HTTP_PORT:-3000}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-openinbound}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-openinbound}
+      JWT_SECRET: ${JWT_SECRET}
+      REGISTRATION_ENABLED: ${REGISTRATION_ENABLED:-true}
+      DEFAULT_RETENTION_DAYS: ${DEFAULT_RETENTION_DAYS:-30}
+      S3_TYPE: ${S3_TYPE:-none}
+      S3_ENDPOINT: ${S3_ENDPOINT:-}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-}
+      S3_BUCKET: ${S3_BUCKET:-attachments}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
+    ports:
+      - "${HTTP_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - open-inbound-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  minio_data:
+
+networks:
+  open-inbound-network:
+    driver: bridge
