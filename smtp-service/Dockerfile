@@ -12,7 +12,7 @@ COPY tsconfig.json ./
 # Install dependencies
 RUN npm install --production=false
 
-# Copy source code
+# Copy source code (including type definitions)
 COPY src ./src
 
 # Build TypeScript
