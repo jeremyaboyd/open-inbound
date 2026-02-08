@@ -7,6 +7,69 @@ echo "Open Inbound Installation Script"
 echo "=========================================="
 echo ""
 
+# Function to check if command exists
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
+# Check prerequisites
+echo "Checking prerequisites..."
+echo ""
+
+MISSING_DEPS=0
+
+# Check for Docker
+if ! command_exists docker; then
+    echo "ERROR: Docker is not installed."
+    echo "Please install Docker: https://docs.docker.com/get-docker/"
+    MISSING_DEPS=1
+else
+    echo "✓ Docker found: $(docker --version)"
+fi
+
+# Check for Docker Compose (try both 'docker-compose' and 'docker compose')
+DOCKER_COMPOSE_CMD=""
+if command_exists docker-compose; then
+    DOCKER_COMPOSE_CMD="docker-compose"
+    echo "✓ docker-compose found: $(docker-compose --version)"
+elif docker compose version >/dev/null 2>&1; then
+    DOCKER_COMPOSE_CMD="docker compose"
+    echo "✓ docker compose found: $(docker compose version)"
+else
+    echo "ERROR: Docker Compose is not installed."
+    echo "Please install Docker Compose: https://docs.docker.com/compose/install/"
+    MISSING_DEPS=1
+fi
+
+# Check for OpenSSL (for password generation)
+if ! command_exists openssl; then
+    echo "ERROR: OpenSSL is not installed."
+    echo "Please install OpenSSL (usually included in most Linux distributions)"
+    MISSING_DEPS=1
+else
+    echo "✓ OpenSSL found: $(openssl version | cut -d' ' -f1-2)"
+fi
+
+# Check for Git (optional but recommended)
+if command_exists git; then
+    echo "✓ Git found: $(git --version | cut -d' ' -f1-3)"
+else
+    echo "WARNING: Git is not installed (optional, but recommended)"
+fi
+
+echo ""
+
+if [ $MISSING_DEPS -eq 1 ]; then
+    echo "=========================================="
+    echo "ERROR: Missing required prerequisites!"
+    echo "Please install the missing dependencies and run this script again."
+    echo "=========================================="
+    exit 1
+fi
+
+echo "All prerequisites met!"
+echo ""
+
 # Function to generate random password
 generate_password() {
     openssl rand -base64 32 | tr -d "=+/" | cut -c1-25
@@ -129,15 +192,15 @@ echo ""
 
 # Build Docker images
 echo "Building Docker images..."
-docker-compose build
+$DOCKER_COMPOSE_CMD build
 
 # Start services
 echo ""
 echo "Starting services..."
 if [ "$S3_TYPE" = "local" ]; then
-    docker-compose --profile s3-local up -d postgres minio
+    $DOCKER_COMPOSE_CMD --profile s3-local up -d postgres minio
 else
-    docker-compose up -d postgres
+    $DOCKER_COMPOSE_CMD up -d postgres
 fi
 
 # Wait for database to be ready
@@ -146,7 +209,7 @@ echo "Waiting for database to be ready..."
 sleep 10
 
 # Start remaining services
-docker-compose up -d
+$DOCKER_COMPOSE_CMD up -d
 
 # Wait a bit for services to start
 sleep 5

@@ -17,8 +17,12 @@ A receive-only SMTP service with Docker containers, user management, email stora
 
 ### Prerequisites
 
-- Docker and Docker Compose installed
-- Git
+The installation script will check for these automatically:
+
+- **Docker** - Required for running containers
+- **Docker Compose** - Required for orchestrating services (can be `docker-compose` command or `docker compose` plugin)
+- **OpenSSL** - Required for generating secure passwords (usually pre-installed on Linux)
+- **Git** - Optional, but recommended for cloning the repository
 
 ### Installation
 
@@ -31,7 +35,12 @@ cd open-inbound
 2. Run the installation script:
 ```bash
 # Linux/macOS
+# Option 1: Make executable and run
+chmod +x install.sh
 sudo ./install.sh
+
+# Option 2: Run directly with bash
+sudo bash install.sh
 
 # Windows PowerShell
 .\install.ps1
