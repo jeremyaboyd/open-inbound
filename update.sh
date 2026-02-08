@@ -57,6 +57,12 @@ else
     echo "✓ Configuration file (.env) found"
 fi
 
+# Load S3_TYPE from .env (default: none)
+S3_TYPE=$(grep -E '^S3_TYPE=' .env | tail -n1 | cut -d= -f2)
+if [ -z "$S3_TYPE" ]; then
+    S3_TYPE="none"
+fi
+
 # Backup .env file
 if [ -f ".env" ]; then
     echo "Backing up .env file..."
@@ -79,8 +85,9 @@ if [ ! -d ".git" ]; then
         exit 1
     fi
 else
-    # Get current branch
+    # Get current branch and current commit
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+    OLD_REV=$(git rev-parse HEAD)
     echo "Current branch: $CURRENT_BRANCH"
     
     # Pull latest changes
@@ -88,20 +95,75 @@ else
         echo "ERROR: Failed to pull from git. Please resolve conflicts and try again."
         exit 1
     }
-    echo "✓ Git pull completed"
+    NEW_REV=$(git rev-parse HEAD)
+
+    if [ "$OLD_REV" = "$NEW_REV" ]; then
+        echo "✓ Already up to date. No changes pulled."
+        CHANGED_FILES=""
+    else
+        echo "✓ Git pull completed"
+        CHANGED_FILES=$(git diff --name-only "$OLD_REV" "$NEW_REV")
+    fi
+fi
+
+build_http=false
+build_smtp=false
+restart_all=false
+db_changed=false
+
+if [ -n "$CHANGED_FILES" ]; then
+    echo ""
+    echo "Changed files:"
+    echo "$CHANGED_FILES"
+
+    for file in $CHANGED_FILES; do
+        case "$file" in
+            http-api/*) build_http=true ;;
+            smtp-service/*) build_smtp=true ;;
+            docker-compose.yml) restart_all=true ;;
+            database/init/*) db_changed=true ;;
+        esac
+    done
+fi
+
+if [ -z "$CHANGED_FILES" ]; then
+    echo ""
+    echo "No changes detected. Skipping rebuild."
+    exit 0
+fi
+
+if [ "$db_changed" = true ]; then
+    echo ""
+    echo "WARNING: Database schema files changed."
+    echo "You may need to apply migrations or reinitialize the database."
 fi
 
 echo ""
 echo "Stopping existing containers..."
 $DOCKER_COMPOSE_CMD down
 
-echo ""
-echo "Rebuilding Docker images..."
-$DOCKER_COMPOSE_CMD build --no-cache
+if [ "$build_http" = true ] || [ "$build_smtp" = true ]; then
+    echo ""
+    echo "Rebuilding Docker images..."
+    if [ "$build_http" = true ] && [ "$build_smtp" = true ]; then
+        $DOCKER_COMPOSE_CMD build http-api smtp-service
+    elif [ "$build_http" = true ]; then
+        $DOCKER_COMPOSE_CMD build http-api
+    elif [ "$build_smtp" = true ]; then
+        $DOCKER_COMPOSE_CMD build smtp-service
+    fi
+else
+    echo ""
+    echo "No service code changes detected. Skipping image rebuild."
+fi
 
 echo ""
 echo "Starting services..."
-$DOCKER_COMPOSE_CMD up -d
+if [ "$S3_TYPE" = "local" ]; then
+    $DOCKER_COMPOSE_CMD --profile s3-local up -d
+else
+    $DOCKER_COMPOSE_CMD up -d
+fi
 
 echo ""
 echo "Waiting for services to start..."

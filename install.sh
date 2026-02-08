@@ -209,7 +209,11 @@ echo "Waiting for database to be ready..."
 sleep 10
 
 # Start remaining services
-$DOCKER_COMPOSE_CMD up -d
+if [ "$S3_TYPE" = "local" ]; then
+    $DOCKER_COMPOSE_CMD --profile s3-local up -d
+else
+    $DOCKER_COMPOSE_CMD up -d
+fi
 
 # Wait a bit for services to start
 sleep 5
