@@ -61,71 +61,6 @@ async function loadUsers() {
     }
 }
 
-// Load settings
-async function loadSettings() {
-    try {
-        const response = await fetch(`${API_BASE}/admin/settings`, { headers });
-        const settings = await response.json();
-        
-        if (settings.default_retention_days) {
-            document.getElementById('defaultRetentionDays').value = settings.default_retention_days;
-        }
-        if (settings.registration_enabled !== undefined) {
-            document.getElementById('registrationEnabled').value = settings.registration_enabled.toString();
-        }
-        if (settings.s3_type) {
-            document.getElementById('s3Type').value = settings.s3_type;
-            toggleS3Config();
-        }
-        if (settings.s3_endpoint) {
-            document.getElementById('s3Endpoint').value = settings.s3_endpoint;
-        }
-        if (settings.s3_bucket) {
-            document.getElementById('s3Bucket').value = settings.s3_bucket;
-        }
-    } catch (error) {
-        console.error('Error loading settings:', error);
-    }
-}
-
-// Save settings
-document.getElementById('settingsForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const settings = {
-        default_retention_days: parseInt(document.getElementById('defaultRetentionDays').value),
-        registration_enabled: document.getElementById('registrationEnabled').value === 'true',
-        s3_type: document.getElementById('s3Type').value,
-        s3_endpoint: document.getElementById('s3Endpoint').value || null,
-        s3_access_key: document.getElementById('s3AccessKey').value || null,
-        s3_secret_key: document.getElementById('s3SecretKey').value || null,
-        s3_bucket: document.getElementById('s3Bucket').value || 'attachments',
-    };
-
-    try {
-        const response = await fetch(`${API_BASE}/admin/settings`, {
-            method: 'PUT',
-            headers,
-            body: JSON.stringify(settings),
-        });
-
-        if (response.ok) {
-            alert('Settings saved successfully!');
-        } else {
-            alert('Failed to save settings');
-        }
-    } catch (error) {
-        console.error('Error saving settings:', error);
-        alert('Error saving settings');
-    }
-});
-
-// Toggle S3 config visibility
-document.getElementById('s3Type').addEventListener('change', toggleS3Config);
-function toggleS3Config() {
-    const s3Type = document.getElementById('s3Type').value;
-    document.getElementById('s3Config').style.display = 
-        (s3Type === 'local' || s3Type === 'remote') ? 'block' : 'none';
-}
 
 // User modal
 const modal = document.getElementById('userModal');
@@ -266,4 +201,3 @@ window.deleteUser = async (userId) => {
 
 // Initialize
 loadUsers();
-loadSettings();

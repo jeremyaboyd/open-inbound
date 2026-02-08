@@ -7,6 +7,7 @@ if (token) {
 }
 
 let registrationEnabled = false;
+let domainName = 'localhost';
 
 // Check registration status on page load
 async function checkRegistrationStatus() {
@@ -14,6 +15,9 @@ async function checkRegistrationStatus() {
         const response = await fetch(`${API_BASE}/auth/settings`);
         const data = await response.json();
         registrationEnabled = data.registration_enabled === true;
+        if (data.domain_name) {
+            domainName = data.domain_name;
+        }
         
         // Show/hide registration toggle based on status
         const authToggle = document.getElementById('authToggle');
@@ -54,11 +58,18 @@ function toggleAuthForm() {
 // Login form handler
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
+    const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value;
     const errorDiv = document.getElementById('loginErrorMessage');
 
+    if (!username) {
+        errorDiv.textContent = 'Username is required';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
     try {
+        const email = `${username}@${domainName}`;
         const response = await fetch(`${API_BASE}/auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -83,10 +94,16 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 // Registration form handler
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('registerEmail').value;
+    const username = document.getElementById('registerUsername').value.trim();
     const password = document.getElementById('registerPassword').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
     const errorDiv = document.getElementById('registerErrorMessage');
+
+    if (!username) {
+        errorDiv.textContent = 'Username is required';
+        errorDiv.style.display = 'block';
+        return;
+    }
 
     // Validate passwords match
     if (password !== confirmPassword) {
@@ -110,6 +127,7 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
     }
 
     try {
+        const email = `${username}@${domainName}`;
         const response = await fetch(`${API_BASE}/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },

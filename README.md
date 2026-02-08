@@ -184,24 +184,9 @@ DELETE /api/admin/users/:id
 Authorization: Bearer <token>
 ```
 
-#### Get Settings
-```http
-GET /api/admin/settings
-Authorization: Bearer <token>
-```
+#### Settings
 
-#### Update Settings
-```http
-PUT /api/admin/settings
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "default_retention_days": 30,
-  "registration_enabled": true,
-  "s3_type": "local"
-}
-```
+System settings are environment-based and not editable via the API.
 
 ## Webhooks
 

@@ -11,29 +11,12 @@ const DEFAULT_RETENTION_DAYS = parseInt(process.env.DEFAULT_RETENTION_DAYS || '3
 export function createAuthRouter(db: Pool): Router {
   const userService = new UserService(db);
 
-  // Public settings endpoint to check registration status
+  // Public settings endpoint (environment only)
   router.get('/settings', async (req: Request, res: Response) => {
-    try {
-      const result = await db.query(
-        "SELECT value FROM settings WHERE key = 'registration_enabled'"
-      );
-      
-      let registrationEnabled = true; // Default to enabled
-      if (result.rows.length > 0) {
-        const value = result.rows[0].value;
-        // Handle both JSONB and string values
-        registrationEnabled = typeof value === 'boolean' ? value : value === 'true' || value === true;
-      } else {
-        // Fallback to environment variable if not in database
-        registrationEnabled = REGISTRATION_ENABLED;
-      }
-
-      res.json({ registration_enabled: registrationEnabled });
-    } catch (error) {
-      console.error('Error fetching registration settings:', error);
-      // Fallback to environment variable on error
-      res.json({ registration_enabled: REGISTRATION_ENABLED });
-    }
+    res.json({
+      registration_enabled: REGISTRATION_ENABLED,
+      domain_name: process.env.DOMAIN_NAME || 'localhost',
+    });
   });
 
   router.post('/login', async (req: Request, res: Response) => {

@@ -32,12 +32,6 @@ CREATE TABLE emails (
     attachments JSONB DEFAULT '[]'::jsonb
 );
 
--- Settings table
-CREATE TABLE settings (
-    key VARCHAR(255) PRIMARY KEY,
-    value JSONB NOT NULL,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
 
 -- Webhook logs table
 CREATE TABLE webhook_logs (
@@ -70,16 +64,3 @@ $$ language 'plpgsql';
 -- Triggers for updated_at
 CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_settings_updated_at BEFORE UPDATE ON settings
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Insert default settings
-INSERT INTO settings (key, value) VALUES
-    ('default_retention_days', '30'::jsonb),
-    ('registration_enabled', 'true'::jsonb),
-    ('s3_type', '"none"'::jsonb),
-    ('s3_endpoint', 'null'::jsonb),
-    ('s3_bucket', '"attachments"'::jsonb),
-    ('domain_name', '"localhost"'::jsonb)
-ON CONFLICT (key) DO NOTHING;

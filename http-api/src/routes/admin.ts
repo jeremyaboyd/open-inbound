@@ -110,39 +110,5 @@ export function createAdminRouter(db: Pool): Router {
     }
   });
 
-  // Get settings
-  router.get('/settings', async (req: AuthRequest, res: Response) => {
-    try {
-      const result = await db.query('SELECT * FROM settings');
-      const settings: any = {};
-      result.rows.forEach((row) => {
-        settings[row.key] = row.value;
-      });
-      res.json(settings);
-    } catch (error) {
-      console.error('Error fetching settings:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
-
-  // Update settings
-  router.put('/settings', async (req: AuthRequest, res: Response) => {
-    try {
-      const settings = req.body;
-
-      for (const [key, value] of Object.entries(settings)) {
-        await db.query(
-          'INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2, updated_at = CURRENT_TIMESTAMP',
-          [key, JSON.stringify(value)]
-        );
-      }
-
-      res.json({ message: 'Settings updated successfully' });
-    } catch (error) {
-      console.error('Error updating settings:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
-
   return router;
 }
