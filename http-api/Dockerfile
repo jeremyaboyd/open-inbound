@@ -18,6 +18,9 @@ COPY src ./src
 # Build TypeScript
 RUN npm run build
 
+# Copy static assets into dist
+RUN mkdir -p dist/public && cp -r src/public/* dist/public/
+
 # Expose HTTP port
 EXPOSE 3000
 
