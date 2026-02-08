@@ -251,6 +251,26 @@ Emails are automatically deleted based on the retention period:
 3. **Remote S3** - Uses external S3-compatible service
 4. **Database** - Stores attachments as base64 in PostgreSQL
 
+## Updating
+
+To update Open Inbound to the latest version while preserving your configuration:
+
+```bash
+# Linux/macOS
+sudo bash update.sh
+
+# Windows PowerShell
+.\update.ps1
+```
+
+The update script will:
+- Pull the latest changes from Git
+- Backup your `.env` file
+- Rebuild Docker images
+- Restart containers with your existing configuration
+
+**Note:** Your configuration (`.env` file) will be preserved during updates.
+
 ## Development
 
 ### Building
@@ -285,6 +305,8 @@ open-inbound/
 ├── .env.example            # Example environment variables
 ├── install.sh              # Linux/macOS installation script
 ├── install.ps1             # Windows PowerShell installation script
+├── update.sh               # Linux/macOS update script
+├── update.ps1              # Windows PowerShell update script
 ├── smtp-service/           # SMTP service code
 ├── http-api/               # HTTP API service code
 ├── database/               # Database schema and migrations
