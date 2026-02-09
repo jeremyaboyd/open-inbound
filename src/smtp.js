@@ -11,7 +11,7 @@ function startSmtp() {
   const server = new SMTPServer({
     name: DOMAIN,
     authMethods: [],
-    disabledCommands: ['AUTH'],
+    disabledCommands: ['AUTH', 'STARTTLS'],
     size: 10 * 1024 * 1024,       // 10 MB max message size
     maxClients: 50,                // limit concurrent connections
     onData(stream, session, callback) {

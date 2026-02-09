@@ -13,7 +13,8 @@ docker compose up
 
 | Variable | Description | Default |
 |---|---|---|
-| `DOMAIN` | The domain the SMTP server accepts mail for | `localhost` |
+| `DOMAIN` | The domain the SMTP server accepts mail for (must be a real domain for Traefik TLS) | `localhost` |
+| `ACME_EMAIL` | Email for Let's Encrypt certificate registration (required when using Traefik) | - |
 | `RETENTION_DAYS` | Delete emails older than this many days | `30` |
 | `ATTACHMENTS_ENABLED` | Store attachments (`true`/`false`) | `true` |
 | `SMTP_PORT` | SMTP listener port | `25` |
@@ -24,8 +25,18 @@ docker compose up
 
 ## Docker Services
 
-1. **app** — Node.js process running the SMTP server, web UI, REST API, and retention job.
-2. **db** — PostgreSQL.
+1. **traefik** — Reverse proxy handling TLS termination and automatic Let's Encrypt certificates. Exposes ports 80, 443, and 25.
+2. **app** — Node.js process running the SMTP server, web UI, REST API, and retention job.
+3. **db** — PostgreSQL.
+
+### Traefik Setup
+
+With Traefik in front:
+
+- **Web UI**: Access via `https://${DOMAIN}` (HTTP redirects to HTTPS)
+- **SMTP**: Port 25 is proxied to the app. STARTTLS is disabled on the app (Traefik cannot terminate SMTP STARTTLS); mail is accepted over plain connections only.
+
+For production, set `DOMAIN` and `ACME_EMAIL` in `.env`. Your domain must resolve to the server's public IP for Let's Encrypt to issue certificates.
 
 The retention job runs as a daily cron within the app container (using `node-cron`), not as a separate service.
 

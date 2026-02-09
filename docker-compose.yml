@@ -1,9 +1,30 @@
 services:
+  traefik:
+    image: traefik:3
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.smtp.address=:25"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:-}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "25:25"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-letsencrypt:/letsencrypt
+    environment:
+      - ACME_EMAIL=${ACME_EMAIL:-}
+
   app:
     build: .
-    ports:
-      - "${SMTP_PORT:-25}:25"
-      - "${WEB_PORT:-3000}:3000"
+    expose:
+      - "25"
+      - "3000"
     environment:
       - DATABASE_URL=${DATABASE_URL:-postgres://smtp:smtp@db:5432/smtp}
       - DOMAIN=${DOMAIN:-localhost}
@@ -13,9 +34,29 @@ services:
       - WEB_PORT=3000
       - ADMIN_USERNAME=${ADMIN_USERNAME:-}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+    labels:
+      - "traefik.enable=true"
+      # HTTP: redirect to HTTPS
+      - "traefik.http.routers.app-http.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.app-http.entrypoints=web"
+      - "traefik.http.routers.app-http.middlewares=redirect-to-https"
+      # HTTPS: web UI
+      - "traefik.http.routers.app-secure.rule=Host(`${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.app-secure.entrypoints=websecure"
+      - "traefik.http.routers.app-secure.tls=true"
+      - "traefik.http.routers.app-secure.tls.certresolver=letsencrypt"
+      - "traefik.http.services.app.loadbalancer.server.port=3000"
+      # Middleware: HTTP to HTTPS redirect
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true"
+      # TCP: SMTP
+      - "traefik.tcp.routers.smtp.rule=HostSNI(`*`)"
+      - "traefik.tcp.routers.smtp.entrypoints=smtp"
+      - "traefik.tcp.services.smtp.loadbalancer.server.port=25"
     depends_on:
       db:
         condition: service_healthy
+
   db:
     image: postgres:16-alpine
     environment:
@@ -32,3 +73,4 @@ services:
 
 volumes:
   pgdata:
+  traefik-letsencrypt:
