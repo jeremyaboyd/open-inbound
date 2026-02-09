@@ -1,0 +1,31 @@
+<% 
+  var inboxRows = '';
+  if (inboxes.length > 0) {
+    inboxRows = inboxes.map(function(inbox) {
+      var status = inbox.disabled ? '<span style="color: #dc3545;">Disabled</span>' : '<span style="color: #28a745;">Active</span>';
+      var actionBtn = inbox.disabled ? 'Enable' : 'Disable';
+      return '<tr><td>' + inbox.address + '</td><td>' + new Date(inbox.created_at).toLocaleString() + '</td><td>' + status + '</td><td>' + (inbox.email_count || 0) + '</td><td><form method="POST" action="/admin/inboxes/' + inbox.id + '/disable" style="display: inline;"><button type="submit" class="btn-secondary">' + actionBtn + '</button></form><form method="POST" action="/admin/inboxes/' + inbox.id + '/delete" style="display: inline;" onsubmit="return confirm(\'Are you sure you want to delete this inbox? This will delete all emails and attachments.\');"><button type="submit" class="btn-danger">Delete</button></form></td></tr>';
+    }).join('');
+  }
+  
+  var inboxTable = '';
+  if (inboxes.length === 0) {
+    inboxTable = '<p>No inboxes yet.</p>';
+  } else {
+    inboxTable = '<table><thead><tr><th>Address</th><th>Created</th><th>Status</th><th>Emails</th><th>Actions</th></tr></thead><tbody>' + inboxRows + '</tbody></table>';
+  }
+  
+  var body = `
+    <div class="nav">
+      <a href="/admin">Dashboard</a>
+      <form method="POST" action="/admin/logout" style="display: inline;">
+        <button type="submit" class="btn-secondary">Logout</button>
+      </form>
+    </div>
+    
+    <h1>Admin Dashboard</h1>
+    
+    ` + inboxTable;
+  var title = 'Admin Dashboard';
+%>
+<%- include('../layout') %>

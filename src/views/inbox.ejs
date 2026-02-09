@@ -1,0 +1,37 @@
+<% 
+  var emailRows = '';
+  if (emails.length > 0) {
+    emailRows = emails.map(function(email) {
+      return '<tr><td><a href="/inbox/emails/' + email.id + '">' + (email.subject || '(no subject)') + '</a></td><td>' + (email.from || '') + '</td><td>' + new Date(email.received_at).toLocaleString() + '</td></tr>';
+    }).join('');
+  }
+  
+  var pagination = '';
+  if (emails.length > 0) {
+    var prevLink = offset > 0 ? '<a href="/inbox?limit=' + limit + '&offset=' + Math.max(0, offset - limit) + '">Previous</a>' : '';
+    var nextLink = emails.length === limit ? '<a href="/inbox?limit=' + limit + '&offset=' + (offset + limit) + '">Next</a>' : '';
+    pagination = '<div class="pagination">' + prevLink + nextLink + '</div>';
+  }
+  
+  var emailTable = '';
+  if (emails.length === 0) {
+    emailTable = '<p>No emails yet.</p>';
+  } else {
+    emailTable = '<table><thead><tr><th>Subject</th><th>From</th><th>Date</th></tr></thead><tbody>' + emailRows + '</tbody></table>' + pagination;
+  }
+  
+  var body = `
+    <div class="nav">
+      <a href="/inbox">Inbox</a>
+      <a href="/inbox/settings">Settings</a>
+      <form method="POST" action="/logout" style="display: inline;">
+        <button type="submit" class="btn-secondary">Logout</button>
+      </form>
+    </div>
+    
+    <h1>Inbox: ` + inbox.address + '@' + (typeof domain !== 'undefined' ? domain : 'localhost') + `</h1>
+    
+    ` + emailTable;
+  var title = 'Inbox - ' + inbox.address;
+%>
+<%- include('layout') %>

@@ -1,0 +1,34 @@
+services:
+  app:
+    build: .
+    ports:
+      - "${SMTP_PORT:-25}:25"
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL:-postgres://smtp:smtp@db:5432/smtp}
+      - DOMAIN=${DOMAIN:-localhost}
+      - RETENTION_DAYS=${RETENTION_DAYS:-30}
+      - ATTACHMENTS_ENABLED=${ATTACHMENTS_ENABLED:-true}
+      - SMTP_PORT=25
+      - WEB_PORT=3000
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: smtp
+      POSTGRES_PASSWORD: smtp
+      POSTGRES_DB: smtp
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smtp"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:

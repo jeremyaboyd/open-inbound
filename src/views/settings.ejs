@@ -1,0 +1,34 @@
+<% 
+  var successMsg = (typeof updated !== 'undefined' && updated === '1') ? '<div class="success">Settings updated!</div>' : '';
+  
+  var body = `
+    <div class="nav">
+      <a href="/inbox">Inbox</a>
+      <a href="/inbox/settings">Settings</a>
+      <form method="POST" action="/logout" style="display: inline;">
+        <button type="submit" class="btn-secondary">Logout</button>
+      </form>
+    </div>
+    
+    <h1>Settings</h1>
+    ` + successMsg + `
+    
+    <h2>API Key</h2>
+    <p>Use this key to authenticate API requests:</p>
+    <pre><code>` + inbox.api_key + `</code></pre>
+    <form method="POST" action="/inbox/settings" style="margin-top: 10px;">
+      <input type="hidden" name="regenerate_api_key" value="1">
+      <button type="submit" class="btn-secondary">Regenerate API Key</button>
+    </form>
+    
+    <h2>Webhook URL</h2>
+    <p>When an email is received, POST the email data to this URL (optional):</p>
+    <form method="POST" action="/inbox/settings">
+      <label for="webhook_url">Webhook URL:</label>
+      <input type="text" id="webhook_url" name="webhook_url" value="` + (inbox.webhook_url || '') + `" placeholder="https://example.com/webhook">
+      <button type="submit">Update Webhook</button>
+    </form>
+  `;
+  var title = 'Settings';
+%>
+<%- include('layout') %>

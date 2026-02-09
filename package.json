@@ -1,0 +1,29 @@
+{
+  "name": "open-inbound",
+  "version": "1.0.0",
+  "description": "A simple, self-hosted, inbound-only SMTP server with web UI and REST API",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "migrate": "node-pg-migrate",
+    "migrate:up": "node-pg-migrate up",
+    "migrate:down": "node-pg-migrate down"
+  },
+  "keywords": ["smtp", "email", "inbound", "mail"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "smtp-server": "^3.13.0",
+    "mailparser": "^3.6.5",
+    "express": "^4.18.2",
+    "ejs": "^3.1.9",
+    "express-session": "^1.17.3",
+    "connect-pg-simple": "^9.0.1",
+    "pg": "^8.11.3",
+    "node-pg-migrate": "^6.2.2",
+    "bcrypt": "^5.1.1",
+    "node-cron": "^3.0.3",
+    "uuid": "^9.0.1",
+    "dotenv": "^16.3.1"
+  }
+}

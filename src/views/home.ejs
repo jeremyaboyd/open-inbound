@@ -1,0 +1,21 @@
+<% 
+  var body = `
+    <h1>Open-Inbound</h1>
+    <p>Create a new inbox to start receiving emails.</p>
+    
+    <h2>Create Inbox</h2>
+    <form method="POST" action="/">
+      <label for="address">Address (local part only, e.g., "notifications"):</label>
+      <input type="text" id="address" name="address" required>
+      
+      <label for="password">Password:</label>
+      <input type="password" id="password" name="password" required>
+      
+      <button type="submit">Create Inbox</button>
+    </form>
+    
+    <p><a href="/login">Login to existing inbox</a></p>
+  `;
+  var title = 'Open-Inbound - Create Inbox';
+%>
+<%- include('layout') %>
