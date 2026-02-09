@@ -11,10 +11,23 @@ const app = express();
 // View engine
 app.set('view engine', 'ejs');
 app.set('views', './src/views');
+app.set('trust proxy', 1);
+
+// HTML escape helper – available as esc() in all EJS templates
+function escapeHtml(str) {
+  if (typeof str !== 'string') return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+app.locals.esc = escapeHtml;
 
 // Middleware
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
+app.use(express.json({ limit: '100kb' }));
 
 // Session middleware
 app.use(session({

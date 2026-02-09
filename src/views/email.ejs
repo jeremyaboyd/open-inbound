@@ -1,16 +1,16 @@
 <% 
   var htmlBody = '';
   if (email.html_body) {
-    var escapedHtml = (email.html_body || '').replace(/"/g, '&quot;');
-    htmlBody = '<div style="border: 1px solid #ddd; padding: 15px; margin: 15px 0;"><iframe srcdoc="' + escapedHtml + '" style="width: 100%; min-height: 400px; border: none;"></iframe></div>';
+    var escapedHtml = esc(email.html_body || '');
+    htmlBody = '<div style="border: 1px solid #ddd; padding: 15px; margin: 15px 0;"><iframe sandbox="" srcdoc="' + escapedHtml + '" style="width: 100%; min-height: 400px; border: none;"></iframe></div>';
   }
   
-  var textBody = email.text_body ? '<pre style="white-space: pre-wrap;">' + email.text_body + '</pre>' : '<p><em>No body content</em></p>';
+  var textBody = email.text_body ? '<pre style="white-space: pre-wrap;">' + esc(email.text_body) + '</pre>' : '<p><em>No body content</em></p>';
   
   var attachmentTable = '';
   if (attachments.length > 0) {
     var attRows = attachments.map(function(att) {
-      return '<tr><td>' + (att.filename || 'unnamed') + '</td><td>' + (att.content_type || 'unknown') + '</td><td>' + (att.size / 1024).toFixed(2) + ' KB</td><td><a href="/inbox/emails/' + email.id + '/attachments/' + att.id + '">Download</a></td></tr>';
+      return '<tr><td>' + esc(att.filename || 'unnamed') + '</td><td>' + esc(att.content_type || 'unknown') + '</td><td>' + (att.size / 1024).toFixed(2) + ' KB</td><td><a href="/inbox/emails/' + email.id + '/attachments/' + att.id + '">Download</a></td></tr>';
     }).join('');
     attachmentTable = '<h2>Attachments (' + attachments.length + ')</h2><table><thead><tr><th>Filename</th><th>Type</th><th>Size</th><th>Action</th></tr></thead><tbody>' + attRows + '</tbody></table>';
   }
@@ -25,10 +25,10 @@
       </form>
     </div>
     
-    <h1>` + (email.subject || '(no subject)') + `</h1>
+    <h1>` + esc(email.subject || '(no subject)') + `</h1>
     
-    <p><strong>From:</strong> ` + (email.from || '') + `</p>
-    <p><strong>To:</strong> ` + (email.to || '') + `</p>
+    <p><strong>From:</strong> ` + esc(email.from || '') + `</p>
+    <p><strong>To:</strong> ` + esc(email.to || '') + `</p>
     <p><strong>Date:</strong> ` + new Date(email.received_at).toLocaleString() + `</p>
     
     <h2>Body</h2>

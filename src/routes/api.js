@@ -7,8 +7,13 @@ const {
   listAttachments,
   getAttachment
 } = require('../db');
+const { createRateLimiter } = require('../rateLimit');
 
 const router = express.Router();
+
+// Rate limiter for API endpoints (per IP)
+const apiLimiter = createRateLimiter({ windowMs: 60 * 1000, max: 60, message: 'Rate limit exceeded. Please slow down.' });
+router.use(apiLimiter);
 
 // API auth middleware
 async function requireApiAuth(req, res, next) {
@@ -33,8 +38,8 @@ async function requireApiAuth(req, res, next) {
 
 // List emails
 router.get('/emails', requireApiAuth, async (req, res) => {
-  const limit = parseInt(req.query.limit || '50', 10);
-  const offset = parseInt(req.query.offset || '0', 10);
+  const limit = Math.min(Math.max(parseInt(req.query.limit || '50', 10) || 50, 1), 100);
+  const offset = Math.max(parseInt(req.query.offset || '0', 10) || 0, 0);
 
   // Build filters from remaining query params
   const { limit: _l, offset: _o, ...filterParams } = req.query;
@@ -93,8 +98,9 @@ router.get('/emails/:id/attachments/:attachmentId', requireApiAuth, async (req, 
     return res.status(404).send('Not Found');
   }
 
+  const safeFilename = (attachment.filename || 'attachment').replace(/[^a-zA-Z0-9._-]/g, '_');
   res.setHeader('Content-Type', attachment.content_type || 'application/octet-stream');
-  res.setHeader('Content-Disposition', `attachment; filename="${attachment.filename || 'attachment'}"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
   res.send(attachment.content);
 });
 

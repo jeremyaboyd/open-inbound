@@ -12,6 +12,8 @@ function startSmtp() {
     name: DOMAIN,
     authMethods: [],
     disabledCommands: ['AUTH'],
+    size: 10 * 1024 * 1024,       // 10 MB max message size
+    maxClients: 50,                // limit concurrent connections
     onData(stream, session, callback) {
       // Collect raw message first
       const chunks = [];

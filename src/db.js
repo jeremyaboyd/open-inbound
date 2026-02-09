@@ -167,10 +167,14 @@ async function getAttachment(attachmentId, emailId) {
 }
 
 async function deleteOldEmails(retentionDays) {
+  const days = parseInt(retentionDays, 10);
+  if (!Number.isFinite(days) || days < 1) return 0;
+
   const result = await pool.query(
     `DELETE FROM emails 
-     WHERE received_at < NOW() - INTERVAL '${retentionDays} days'
-     RETURNING id`
+     WHERE received_at < NOW() - $1 * INTERVAL '1 day'
+     RETURNING id`,
+    [days]
   );
   return result.rowCount;
 }

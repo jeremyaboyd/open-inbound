@@ -2,7 +2,7 @@
   var emailRows = '';
   if (emails.length > 0) {
     emailRows = emails.map(function(email) {
-      return '<tr><td><a href="/inbox/emails/' + email.id + '">' + (email.subject || '(no subject)') + '</a></td><td>' + (email.from || '') + '</td><td>' + new Date(email.received_at).toLocaleString() + '</td></tr>';
+      return '<tr><td><a href="/inbox/emails/' + email.id + '">' + esc(email.subject || '(no subject)') + '</a></td><td>' + esc(email.from || '') + '</td><td>' + new Date(email.received_at).toLocaleString() + '</td></tr>';
     }).join('');
   }
   
@@ -30,7 +30,7 @@
       </form>
     </div>
     
-    <h1>Inbox: ` + inbox.address + '@' + (typeof domain !== 'undefined' ? domain : 'localhost') + `</h1>
+    <h1>Inbox: ` + esc(inbox.address) + '@' + esc(typeof domain !== 'undefined' ? domain : 'localhost') + `</h1>
     
     ` + emailTable;
   var title = 'Inbox - ' + inbox.address;

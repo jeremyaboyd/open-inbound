@@ -4,7 +4,7 @@
     inboxRows = inboxes.map(function(inbox) {
       var status = inbox.disabled ? '<span style="color: #dc3545;">Disabled</span>' : '<span style="color: #28a745;">Active</span>';
       var actionBtn = inbox.disabled ? 'Enable' : 'Disable';
-      return '<tr><td>' + inbox.address + '</td><td>' + new Date(inbox.created_at).toLocaleString() + '</td><td>' + status + '</td><td>' + (inbox.email_count || 0) + '</td><td><form method="POST" action="/admin/inboxes/' + inbox.id + '/disable" style="display: inline;"><button type="submit" class="btn-secondary">' + actionBtn + '</button></form><form method="POST" action="/admin/inboxes/' + inbox.id + '/delete" style="display: inline;" onsubmit="return confirm(\'Are you sure you want to delete this inbox? This will delete all emails and attachments.\');"><button type="submit" class="btn-danger">Delete</button></form></td></tr>';
+      return '<tr><td>' + esc(inbox.address) + '</td><td>' + new Date(inbox.created_at).toLocaleString() + '</td><td>' + status + '</td><td>' + (inbox.email_count || 0) + '</td><td><form method="POST" action="/admin/inboxes/' + inbox.id + '/disable" style="display: inline;"><button type="submit" class="btn-secondary">' + actionBtn + '</button></form><form method="POST" action="/admin/inboxes/' + inbox.id + '/delete" style="display: inline;" onsubmit="return confirm(\'Are you sure you want to delete this inbox? This will delete all emails and attachments.\');"><button type="submit" class="btn-danger">Delete</button></form></td></tr>';
     }).join('');
   }
   

@@ -13,8 +13,17 @@ const {
   listAttachments,
   getAttachment
 } = require('../db');
+const { createRateLimiter } = require('../rateLimit');
 
 const router = express.Router();
+
+// Rate limiters
+const registerLimiter = createRateLimiter({ windowMs: 60 * 60 * 1000, max: 10, message: 'Too many accounts created. Please try again later.' });
+const loginLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20, message: 'Too many login attempts. Please try again later.' });
+
+// Address validation: alphanumeric, dots, hyphens, underscores; 1-64 chars
+const ADDRESS_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
+const MIN_PASSWORD_LENGTH = 8;
 
 // Auth middleware for inbox routes
 async function requireInboxAuth(req, res, next) {
@@ -42,11 +51,21 @@ router.get('/', (req, res) => {
   res.render('home');
 });
 
-router.post('/', async (req, res) => {
+router.post('/', registerLimiter, async (req, res) => {
   const { address, password } = req.body;
 
   if (!address || !password) {
     return res.render('home', { error: 'Address and password are required' });
+  }
+
+  // Validate address format
+  if (!ADDRESS_RE.test(address)) {
+    return res.render('home', { error: 'Address must start with a letter or number and contain only letters, numbers, dots, hyphens, or underscores (max 64 characters).' });
+  }
+
+  // Validate password strength
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return res.render('home', { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` });
   }
 
   // Check if inbox already exists
@@ -74,7 +93,7 @@ router.get('/login', (req, res) => {
   res.render('login', { error, created });
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', loginLimiter, async (req, res) => {
   const { address, password } = req.body;
 
   if (!address || !password) {
@@ -138,8 +157,10 @@ router.get('/inbox/emails/:id/attachments/:attachmentId', requireInboxAuth, asyn
     return res.status(404).send('Attachment not found');
   }
 
+  // Sanitise filename for Content-Disposition header
+  const safeFilename = (attachment.filename || 'attachment').replace(/[^a-zA-Z0-9._-]/g, '_');
   res.setHeader('Content-Type', attachment.content_type || 'application/octet-stream');
-  res.setHeader('Content-Disposition', `attachment; filename="${attachment.filename || 'attachment'}"`);
+  res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
   res.send(attachment.content);
 });
 

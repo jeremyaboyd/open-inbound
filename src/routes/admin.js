@@ -7,11 +7,15 @@ const {
   enableInbox,
   deleteInbox
 } = require('../db');
+const { createRateLimiter } = require('../rateLimit');
 
 const router = express.Router();
 
 const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
+// Rate limiter for admin login
+const adminLoginLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 10, message: 'Too many login attempts. Please try again later.' });
 
 // Admin auth middleware
 function requireAdminAuth(req, res, next) {
@@ -26,12 +30,12 @@ function requireAdminAuth(req, res, next) {
   next();
 }
 
-// Timing-safe comparison
+// Timing-safe comparison using hashing to normalise lengths
+// (avoids leaking the length of the expected value via early return)
 function timingSafeEqual(a, b) {
-  if (a.length !== b.length) {
-    return false;
-  }
-  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
+  const hashA = crypto.createHash('sha256').update(String(a)).digest();
+  const hashB = crypto.createHash('sha256').update(String(b)).digest();
+  return crypto.timingSafeEqual(hashA, hashB);
 }
 
 // Admin login
@@ -42,7 +46,7 @@ router.get('/login', (req, res) => {
   res.render('admin/login');
 });
 
-router.post('/login', (req, res) => {
+router.post('/login', adminLoginLimiter, (req, res) => {
   if (!ADMIN_USERNAME || !ADMIN_PASSWORD) {
     return res.status(404).send('Not Found');
   }
