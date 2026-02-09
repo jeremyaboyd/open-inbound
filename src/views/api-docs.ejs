@@ -403,8 +403,8 @@
     </style>
 
     <script>
-      var API_KEY = <%- JSON.stringify(apiKey) %>;
-      var INBOX_ADDRESS = <%- JSON.stringify(inboxAddress) %>;
+      var API_KEY = "` + apiKey.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r/g, '\\r').replace(/\n/g, '\\n') + `";
+      var INBOX_ADDRESS = "` + inboxAddress.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r/g, '\\r').replace(/\n/g, '\\n') + `";
       var BASE = window.location.origin;
 
       function copyApiKey() {
