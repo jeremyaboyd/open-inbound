@@ -110,13 +110,27 @@ async function insertAttachment(emailId, filename, contentType, size, content) {
   return result.rows[0].id;
 }
 
-async function listEmails(inboxId, limit = 50, offset = 0) {
+const FILTERABLE_EMAIL_COLUMNS = new Set(['from', 'to', 'subject']);
+
+async function listEmails(inboxId, limit = 50, offset = 0, filters = {}) {
+  const conditions = ['inbox_id = $1'];
+  const params = [inboxId];
+  let idx = 2;
+
+  for (const [col, value] of Object.entries(filters)) {
+    if (!FILTERABLE_EMAIL_COLUMNS.has(col) || typeof value !== 'string') continue;
+    conditions.push(`"${col}" ILIKE $${idx}`);
+    params.push(value);
+    idx++;
+  }
+
+  params.push(limit, offset);
   const result = await pool.query(
     `SELECT * FROM emails 
-     WHERE inbox_id = $1 
+     WHERE ${conditions.join(' AND ')} 
      ORDER BY received_at DESC 
-     LIMIT $2 OFFSET $3`,
-    [inboxId, limit, offset]
+     LIMIT $${idx} OFFSET $${idx + 1}`,
+    params
   );
   return result.rows;
 }

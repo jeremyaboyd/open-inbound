@@ -36,7 +36,16 @@ router.get('/emails', requireApiAuth, async (req, res) => {
   const limit = parseInt(req.query.limit || '50', 10);
   const offset = parseInt(req.query.offset || '0', 10);
 
-  const emails = await listEmails(req.inbox.id, limit, offset);
+  // Build filters from remaining query params
+  const { limit: _l, offset: _o, ...filterParams } = req.query;
+  const filters = {};
+  for (const [key, value] of Object.entries(filterParams)) {
+    if (typeof value === 'string' && value.length > 0) {
+      filters[key] = value;
+    }
+  }
+
+  const emails = await listEmails(req.inbox.id, limit, offset, filters);
   res.json(emails);
 });
 

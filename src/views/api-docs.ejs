@@ -41,6 +41,9 @@
           <tbody>
             <tr><td><code>limit</code></td><td>integer</td><td>50</td><td>Maximum number of emails to return</td></tr>
             <tr><td><code>offset</code></td><td>integer</td><td>0</td><td>Number of emails to skip</td></tr>
+            <tr><td><code>from</code></td><td>string</td><td>&mdash;</td><td>Filter by sender (ILIKE pattern, e.g. <code>%alice%</code>)</td></tr>
+            <tr><td><code>to</code></td><td>string</td><td>&mdash;</td><td>Filter by recipient (ILIKE pattern, e.g. <code>%bob%</code>)</td></tr>
+            <tr><td><code>subject</code></td><td>string</td><td>&mdash;</td><td>Filter by subject (ILIKE pattern, e.g. <code>%invoice%</code>)</td></tr>
           </tbody>
         </table>
       </div>
@@ -49,6 +52,9 @@
         <div class="playground-controls">
           <label>limit <input type="number" id="list-limit" value="10" min="1" max="100"></label>
           <label>offset <input type="number" id="list-offset" value="0" min="0"></label>
+          <label>from <input type="text" id="list-from" placeholder="%alice%"></label>
+          <label>to <input type="text" id="list-to" placeholder="%bob%"></label>
+          <label>subject <input type="text" id="list-subject" placeholder="%invoice%"></label>
           <button type="button" class="btn" onclick="tryListEmails()">Send Request</button>
         </div>
         <div class="curl-example">
@@ -425,7 +431,14 @@
       function tryListEmails() {
         var limit = document.getElementById('list-limit').value || 10;
         var offset = document.getElementById('list-offset').value || 0;
-        apiRequest('GET', '/api/emails?limit=' + limit + '&offset=' + offset, 'list-emails');
+        var params = 'limit=' + encodeURIComponent(limit) + '&offset=' + encodeURIComponent(offset);
+        var from = document.getElementById('list-from').value.trim();
+        var to = document.getElementById('list-to').value.trim();
+        var subject = document.getElementById('list-subject').value.trim();
+        if (from) params += '&from=' + encodeURIComponent(from);
+        if (to) params += '&to=' + encodeURIComponent(to);
+        if (subject) params += '&subject=' + encodeURIComponent(subject);
+        apiRequest('GET', '/api/emails?' + params, 'list-emails');
       }
 
       function tryGetEmail() {
