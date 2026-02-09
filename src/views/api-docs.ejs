@@ -403,8 +403,8 @@
     </style>
 
     <script>
-      var API_KEY = "` + apiKey.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r/g, '\\r').replace(/\n/g, '\\n') + `";
-      var INBOX_ADDRESS = "` + inboxAddress.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\r/g, '\\r').replace(/\n/g, '\\n') + `";
+      var API_KEY = "` + apiKey + `";
+      var INBOX_ADDRESS = "` + inboxAddress + `";
       var BASE = window.location.origin;
 
       function copyApiKey() {
@@ -543,12 +543,12 @@
         var md = "# API Documentation\n\n";
         md += "## Inbox Details\n\n";
         md += "| Property | Value |\n|----------|-------|\n";
-        md += "| **Inbox Address** | `" + INBOX_ADDRESS + "` |\n";
-        md += "| **API Key** | `" + API_KEY + "` |\n";
-        md += "| **Base URL** | `" + baseUrl + "` |\n\n";
+        md += "| **Inbox Address** | " + INBOX_ADDRESS + " |\n";
+        md += "| **API Key** | " + API_KEY + " |\n";
+        md += "| **Base URL** | " + baseUrl + " |\n\n";
         md += "## Authentication\n\n";
-        md += "Include your API key in every request using the `X-API-Key` header:\n\n";
-        md += "```\nX-API-Key: " + API_KEY + "\n```\n\n";
+        md += "Include your API key in every request using the X-API-Key header:\n\n";
+        md += "~~~\nX-API-Key: " + API_KEY + "\n~~~\n\n";
         md += "---\n\n";
 
         md += "## Endpoints\n\n";
@@ -558,49 +558,49 @@
         md += "**Query Parameters**\n\n";
         md += "| Parameter | Type | Default | Description |\n";
         md += "|-----------|------|---------|-------------|\n";
-        md += "| `limit` | integer | 50 | Maximum number of emails to return |\n";
-        md += "| `offset` | integer | 0 | Number of emails to skip |\n";
-        md += "| `from` | string | — | Filter by sender (ILIKE pattern) |\n";
-        md += "| `to` | string | — | Filter by recipient (ILIKE pattern) |\n";
-        md += "| `subject` | string | — | Filter by subject (ILIKE pattern) |\n\n";
-        md += "**Example curl**\n\n```bash\ncurl -H \"X-API-Key: " + API_KEY + "\" \"" + baseUrl + "/api/emails?limit=10&offset=0\"\n```\n\n";
-        md += "**Example Response (200)**\n\n```json\n" + exampleListOutput + "\n```\n\n";
+        md += "| limit | integer | 50 | Maximum number of emails to return |\n";
+        md += "| offset | integer | 0 | Number of emails to skip |\n";
+        md += "| from | string | — | Filter by sender (ILIKE pattern) |\n";
+        md += "| to | string | — | Filter by recipient (ILIKE pattern) |\n";
+        md += "| subject | string | — | Filter by subject (ILIKE pattern) |\n\n";
+        md += "**Example curl**\n\n~~~bash\ncurl -H \"X-API-Key: " + API_KEY + "\" \"" + baseUrl + "/api/emails?limit=10&offset=0\"\n~~~\n\n";
+        md += "**Example Response (200)**\n\n~~~json\n" + exampleListOutput + "\n~~~\n\n";
 
         md += "### GET /api/emails/:id\n\n";
         md += "Retrieve a single email by its ID, including full body content.\n\n";
         md += "**Path Parameters**\n\n";
         md += "| Parameter | Type | Description |\n";
         md += "|-----------|------|-------------|\n";
-        md += "| `id` | uuid | The email ID |\n\n";
-        md += "**Example curl**\n\n```bash\ncurl -H \"X-API-Key: " + API_KEY + "\" \"" + baseUrl + "/api/emails/{id}\"\n```\n\n";
-        md += "**Example Response (200)**\n\n```json\n" + exampleGetEmailOutput + "\n```\n\n";
+        md += "| id | uuid | The email ID |\n\n";
+        md += "**Example curl**\n\n~~~bash\ncurl -H \"X-API-Key: " + API_KEY + "\" \"" + baseUrl + "/api/emails/{id}\"\n~~~\n\n";
+        md += "**Example Response (200)**\n\n~~~json\n" + exampleGetEmailOutput + "\n~~~\n\n";
 
         md += "### DELETE /api/emails/:id\n\n";
         md += "Permanently delete an email by its ID.\n\n";
         md += "**Path Parameters**\n\n";
         md += "| Parameter | Type | Description |\n";
         md += "|-----------|------|-------------|\n";
-        md += "| `id` | uuid | The email ID |\n\n";
-        md += "**Example curl**\n\n```bash\ncurl -X DELETE -H \"X-API-Key: " + API_KEY + "\" \"" + baseUrl + "/api/emails/{id}\"\n```\n\n";
-        md += "**Example Response (200)**\n\n```\nOK\n```\n\n";
+        md += "| id | uuid | The email ID |\n\n";
+        md += "**Example curl**\n\n~~~bash\ncurl -X DELETE -H \"X-API-Key: " + API_KEY + "\" \"" + baseUrl + "/api/emails/{id}\"\n~~~\n\n";
+        md += "**Example Response (200)**\n\n~~~\nOK\n~~~\n\n";
 
         md += "### GET /api/emails/:id/attachments\n\n";
         md += "List all attachments for a specific email.\n\n";
         md += "**Path Parameters**\n\n";
         md += "| Parameter | Type | Description |\n";
         md += "|-----------|------|-------------|\n";
-        md += "| `id` | uuid | The email ID |\n\n";
-        md += "**Example curl**\n\n```bash\ncurl -H \"X-API-Key: " + API_KEY + "\" \"" + baseUrl + "/api/emails/{id}/attachments\"\n```\n\n";
-        md += "**Example Response (200)**\n\n```json\n" + exampleListAttOutput + "\n```\n\n";
+        md += "| id | uuid | The email ID |\n\n";
+        md += "**Example curl**\n\n~~~bash\ncurl -H \"X-API-Key: " + API_KEY + "\" \"" + baseUrl + "/api/emails/{id}/attachments\"\n~~~\n\n";
+        md += "**Example Response (200)**\n\n~~~json\n" + exampleListAttOutput + "\n~~~\n\n";
 
         md += "### GET /api/emails/:id/attachments/:attachmentId\n\n";
         md += "Download a specific attachment. Returns the raw file with appropriate content-type headers.\n\n";
         md += "**Path Parameters**\n\n";
         md += "| Parameter | Type | Description |\n";
         md += "|-----------|------|-------------|\n";
-        md += "| `id` | uuid | The email ID |\n";
-        md += "| `attachmentId` | uuid | The attachment ID |\n\n";
-        md += "**Example curl**\n\n```bash\ncurl -H \"X-API-Key: " + API_KEY + "\" \"" + baseUrl + "/api/emails/{id}/attachments/{attachmentId}\" -o file\n```\n\n";
+        md += "| id | uuid | The email ID |\n";
+        md += "| attachmentId | uuid | The attachment ID |\n\n";
+        md += "**Example curl**\n\n~~~bash\ncurl -H \"X-API-Key: " + API_KEY + "\" \"" + baseUrl + "/api/emails/{id}/attachments/{attachmentId}\" -o file\n~~~\n\n";
         md += "**Example Response (200)**\n\nBinary file download with Content-Type header.\n\n";
 
         var blob = new Blob([md], { type: "text/markdown" });
