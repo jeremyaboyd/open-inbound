@@ -143,6 +143,11 @@ router.get('/inbox/emails/:id/attachments/:attachmentId', requireInboxAuth, asyn
   res.send(attachment.content);
 });
 
+// API Docs
+router.get('/inbox/api-docs', requireInboxAuth, (req, res) => {
+  res.render('api-docs', { inbox: req.inbox, domain: process.env.DOMAIN || 'localhost' });
+});
+
 // Settings
 router.get('/inbox/settings', requireInboxAuth, (req, res) => {
   res.render('settings', { inbox: req.inbox });

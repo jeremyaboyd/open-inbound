@@ -1,0 +1,472 @@
+<% 
+  var apiKey = inbox.api_key;
+  var baseUrl = (typeof domain !== 'undefined' ? domain : 'localhost');
+  
+  var body = `
+    <div class="nav">
+      <a href="/inbox">Inbox</a>
+      <a href="/inbox/api-docs">API</a>
+      <a href="/inbox/settings">Settings</a>
+      <form method="POST" action="/logout" style="display: inline;">
+        <button type="submit" class="btn-secondary">Logout</button>
+      </form>
+    </div>
+
+    <h1>API Documentation</h1>
+    <p>Use the REST API to programmatically access your inbox. All requests require authentication via the <code>X-API-Key</code> header.</p>
+
+    <div class="api-auth-section">
+      <h2>Authentication</h2>
+      <p>Include your API key in every request:</p>
+      <div class="api-key-box">
+        <code id="api-key-display">` + apiKey + `</code>
+        <button type="button" class="btn btn-sm" onclick="copyApiKey()">Copy</button>
+      </div>
+      <pre><code>X-API-Key: ` + apiKey + `</code></pre>
+    </div>
+
+    <h2>Endpoints</h2>
+
+    <!-- GET /api/emails -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method-badge method-get">GET</span>
+        <span class="endpoint-path">/api/emails</span>
+      </div>
+      <p>Retrieve a paginated list of emails in your inbox.</p>
+      <div class="params-section">
+        <h3>Query Parameters</h3>
+        <table class="params-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>limit</code></td><td>integer</td><td>50</td><td>Maximum number of emails to return</td></tr>
+            <tr><td><code>offset</code></td><td>integer</td><td>0</td><td>Number of emails to skip</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="playground-section">
+        <h3>Try it</h3>
+        <div class="playground-controls">
+          <label>limit <input type="number" id="list-limit" value="10" min="1" max="100"></label>
+          <label>offset <input type="number" id="list-offset" value="0" min="0"></label>
+          <button type="button" class="btn" onclick="tryListEmails()">Send Request</button>
+        </div>
+        <div class="curl-example">
+          <strong>curl</strong>
+          <pre><code id="curl-list-emails">curl -H "X-API-Key: ` + apiKey + `" ` + '${BASE_URL}' + `/api/emails?limit=10&amp;offset=0</code></pre>
+        </div>
+        <div class="response-area" id="response-list-emails" style="display:none;">
+          <div class="response-header">
+            <strong>Response</strong> <span class="response-status" id="status-list-emails"></span>
+          </div>
+          <pre><code id="body-list-emails"></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- GET /api/emails/:id -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method-badge method-get">GET</span>
+        <span class="endpoint-path">/api/emails/:id</span>
+      </div>
+      <p>Retrieve a single email by its ID, including full body content.</p>
+      <div class="params-section">
+        <h3>Path Parameters</h3>
+        <table class="params-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td>uuid</td><td>The email ID</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="playground-section">
+        <h3>Try it</h3>
+        <div class="playground-controls">
+          <label>Email ID <input type="text" id="get-email-id" placeholder="paste an email UUID"></label>
+          <button type="button" class="btn" onclick="tryGetEmail()">Send Request</button>
+        </div>
+        <div class="curl-example">
+          <strong>curl</strong>
+          <pre><code>curl -H "X-API-Key: ` + apiKey + `" ` + '${BASE_URL}' + `/api/emails/{id}</code></pre>
+        </div>
+        <div class="response-area" id="response-get-email" style="display:none;">
+          <div class="response-header">
+            <strong>Response</strong> <span class="response-status" id="status-get-email"></span>
+          </div>
+          <pre><code id="body-get-email"></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- DELETE /api/emails/:id -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method-badge method-delete">DELETE</span>
+        <span class="endpoint-path">/api/emails/:id</span>
+      </div>
+      <p>Permanently delete an email by its ID.</p>
+      <div class="params-section">
+        <h3>Path Parameters</h3>
+        <table class="params-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td>uuid</td><td>The email ID</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="playground-section">
+        <h3>Try it</h3>
+        <div class="playground-controls">
+          <label>Email ID <input type="text" id="delete-email-id" placeholder="paste an email UUID"></label>
+          <button type="button" class="btn btn-danger" onclick="tryDeleteEmail()">Send Request</button>
+        </div>
+        <div class="curl-example">
+          <strong>curl</strong>
+          <pre><code>curl -X DELETE -H "X-API-Key: ` + apiKey + `" ` + '${BASE_URL}' + `/api/emails/{id}</code></pre>
+        </div>
+        <div class="response-area" id="response-delete-email" style="display:none;">
+          <div class="response-header">
+            <strong>Response</strong> <span class="response-status" id="status-delete-email"></span>
+          </div>
+          <pre><code id="body-delete-email"></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- GET /api/emails/:id/attachments -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method-badge method-get">GET</span>
+        <span class="endpoint-path">/api/emails/:id/attachments</span>
+      </div>
+      <p>List all attachments for a specific email.</p>
+      <div class="params-section">
+        <h3>Path Parameters</h3>
+        <table class="params-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td>uuid</td><td>The email ID</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="playground-section">
+        <h3>Try it</h3>
+        <div class="playground-controls">
+          <label>Email ID <input type="text" id="list-att-email-id" placeholder="paste an email UUID"></label>
+          <button type="button" class="btn" onclick="tryListAttachments()">Send Request</button>
+        </div>
+        <div class="curl-example">
+          <strong>curl</strong>
+          <pre><code>curl -H "X-API-Key: ` + apiKey + `" ` + '${BASE_URL}' + `/api/emails/{id}/attachments</code></pre>
+        </div>
+        <div class="response-area" id="response-list-att" style="display:none;">
+          <div class="response-header">
+            <strong>Response</strong> <span class="response-status" id="status-list-att"></span>
+          </div>
+          <pre><code id="body-list-att"></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- GET /api/emails/:id/attachments/:attachmentId -->
+    <div class="endpoint-card">
+      <div class="endpoint-header">
+        <span class="method-badge method-get">GET</span>
+        <span class="endpoint-path">/api/emails/:id/attachments/:attachmentId</span>
+      </div>
+      <p>Download a specific attachment. Returns the raw file with appropriate content-type headers.</p>
+      <div class="params-section">
+        <h3>Path Parameters</h3>
+        <table class="params-table">
+          <thead><tr><th>Parameter</th><th>Type</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>id</code></td><td>uuid</td><td>The email ID</td></tr>
+            <tr><td><code>attachmentId</code></td><td>uuid</td><td>The attachment ID</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="playground-section">
+        <h3>Try it</h3>
+        <div class="playground-controls">
+          <label>Email ID <input type="text" id="get-att-email-id" placeholder="paste an email UUID"></label>
+          <label>Attachment ID <input type="text" id="get-att-id" placeholder="paste an attachment UUID"></label>
+          <button type="button" class="btn" onclick="tryGetAttachment()">Send Request</button>
+        </div>
+        <div class="curl-example">
+          <strong>curl</strong>
+          <pre><code>curl -H "X-API-Key: ` + apiKey + `" ` + '${BASE_URL}' + `/api/emails/{id}/attachments/{attachmentId} -o file</code></pre>
+        </div>
+        <div class="response-area" id="response-get-att" style="display:none;">
+          <div class="response-header">
+            <strong>Response</strong> <span class="response-status" id="status-get-att"></span>
+          </div>
+          <pre><code id="body-get-att"></code></pre>
+        </div>
+      </div>
+    </div>
+
+    <style>
+      .api-auth-section {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 6px;
+        padding: 20px;
+        margin: 20px 0;
+      }
+      .api-key-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 10px 0;
+        padding: 10px 14px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: 'Courier New', monospace;
+        word-break: break-all;
+      }
+      .api-key-box .btn {
+        flex-shrink: 0;
+        padding: 5px 12px;
+        font-size: 12px;
+      }
+      .endpoint-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin: 20px 0;
+        overflow: hidden;
+      }
+      .endpoint-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e0e0e0;
+      }
+      .method-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 700;
+        font-family: 'Courier New', monospace;
+        color: #fff;
+      }
+      .method-get { background: #28a745; }
+      .method-post { background: #007bff; }
+      .method-delete { background: #dc3545; }
+      .method-put { background: #fd7e14; }
+      .endpoint-path {
+        font-family: 'Courier New', monospace;
+        font-size: 15px;
+        font-weight: 600;
+        color: #333;
+      }
+      .endpoint-card > p {
+        padding: 12px 20px 0;
+        color: #555;
+      }
+      .params-section {
+        padding: 0 20px 10px;
+      }
+      .params-section h3 {
+        font-size: 14px;
+        margin: 14px 0 8px;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .params-table {
+        font-size: 14px;
+        margin: 0;
+      }
+      .params-table th {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #666;
+      }
+      .playground-section {
+        border-top: 1px solid #e0e0e0;
+        padding: 16px 20px;
+        background: #fafbfc;
+      }
+      .playground-section h3 {
+        font-size: 14px;
+        margin: 0 0 12px;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .playground-controls {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-end;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      .playground-controls label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #555;
+      }
+      .playground-controls input {
+        padding: 7px 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 13px;
+        font-family: 'Courier New', monospace;
+        margin: 0;
+        min-width: 180px;
+      }
+      .playground-controls input[type="number"] {
+        min-width: 80px;
+        width: 80px;
+      }
+      .playground-controls .btn {
+        margin-bottom: 0;
+        padding: 7px 16px;
+        font-size: 13px;
+      }
+      .curl-example {
+        margin-bottom: 10px;
+      }
+      .curl-example strong {
+        font-size: 12px;
+        text-transform: uppercase;
+        color: #888;
+        letter-spacing: 0.5px;
+      }
+      .curl-example pre {
+        margin-top: 4px;
+        font-size: 13px;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      .response-area {
+        margin-top: 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+      .response-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 14px;
+        background: #f0f0f0;
+        border-bottom: 1px solid #ddd;
+        font-size: 13px;
+      }
+      .response-status {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        font-size: 13px;
+      }
+      .response-status.status-ok { color: #28a745; }
+      .response-status.status-err { color: #dc3545; }
+      .response-area pre {
+        margin: 0;
+        padding: 14px;
+        max-height: 350px;
+        overflow: auto;
+        font-size: 13px;
+        white-space: pre-wrap;
+        word-break: break-all;
+        border-radius: 0;
+      }
+    </style>
+
+    <script>
+      var API_KEY = "` + apiKey + `";
+      var BASE = window.location.origin;
+
+      function copyApiKey() {
+        navigator.clipboard.writeText(API_KEY).then(function() {
+          var btn = document.querySelector('.api-key-box .btn');
+          btn.textContent = 'Copied!';
+          setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+        });
+      }
+
+      function showResponse(id, status, body) {
+        var area = document.getElementById('response-' + id);
+        var statusEl = document.getElementById('status-' + id);
+        var bodyEl = document.getElementById('body-' + id);
+        area.style.display = 'block';
+        statusEl.textContent = status;
+        statusEl.className = 'response-status ' + (status < 300 ? 'status-ok' : 'status-err');
+        try {
+          bodyEl.textContent = JSON.stringify(JSON.parse(body), null, 2);
+        } catch(e) {
+          bodyEl.textContent = body;
+        }
+      }
+
+      function apiRequest(method, path, responseId) {
+        fetch(BASE + path, {
+          method: method,
+          headers: { 'X-API-Key': API_KEY }
+        }).then(function(res) {
+          var status = res.status;
+          return res.text().then(function(text) {
+            showResponse(responseId, status, text);
+          });
+        }).catch(function(err) {
+          showResponse(responseId, 'ERR', err.message);
+        });
+      }
+
+      function tryListEmails() {
+        var limit = document.getElementById('list-limit').value || 10;
+        var offset = document.getElementById('list-offset').value || 0;
+        apiRequest('GET', '/api/emails?limit=' + limit + '&offset=' + offset, 'list-emails');
+      }
+
+      function tryGetEmail() {
+        var id = document.getElementById('get-email-id').value.trim();
+        if (!id) { alert('Please enter an email ID'); return; }
+        apiRequest('GET', '/api/emails/' + id, 'get-email');
+      }
+
+      function tryDeleteEmail() {
+        var id = document.getElementById('delete-email-id').value.trim();
+        if (!id) { alert('Please enter an email ID'); return; }
+        if (!confirm('Are you sure you want to delete this email?')) return;
+        apiRequest('DELETE', '/api/emails/' + id, 'delete-email');
+      }
+
+      function tryListAttachments() {
+        var id = document.getElementById('list-att-email-id').value.trim();
+        if (!id) { alert('Please enter an email ID'); return; }
+        apiRequest('GET', '/api/emails/' + id + '/attachments', 'list-att');
+      }
+
+      function tryGetAttachment() {
+        var emailId = document.getElementById('get-att-email-id').value.trim();
+        var attId = document.getElementById('get-att-id').value.trim();
+        if (!emailId || !attId) { alert('Please enter both IDs'); return; }
+        fetch(BASE + '/api/emails/' + emailId + '/attachments/' + attId, {
+          headers: { 'X-API-Key': API_KEY }
+        }).then(function(res) {
+          if (!res.ok) {
+            return res.text().then(function(text) {
+              showResponse('get-att', res.status, text);
+            });
+          }
+          var ct = res.headers.get('content-type') || '';
+          showResponse('get-att', res.status, 'Binary download (' + ct + '). Use curl to download the actual file.');
+        }).catch(function(err) {
+          showResponse('get-att', 'ERR', err.message);
+        });
+      }
+    </script>
+  `;
+  var title = 'API Documentation';
+%>
+<%- include('layout', { body, title }) %>
