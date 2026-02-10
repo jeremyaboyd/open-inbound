@@ -20,6 +20,7 @@ docker compose up
 | `SMTP_PORT` | SMTP listener port | `25` |
 | `WEB_PORT` | Web UI / API port | `3000` |
 | `DATABASE_URL` | Postgres connection string | `postgres://smtp:smtp@db:5432/smtp` |
+| `REGISTRATION_ENABLED` | Allow public inbox creation on home page (`true`/`false`) | `true` |
 | `ADMIN_USERNAME` | Admin panel username (leave empty to disable) | - |
 | `ADMIN_PASSWORD` | Admin panel password (leave empty to disable) | - |
 
@@ -108,7 +109,7 @@ Minimal. Functional. Server-rendered HTML.
 
 ### Pages
 
-1. **Home (`/`)** — Form to create a new inbox (address + password). Link to login.
+1. **Home (`/`)** — Developer-facing landing with login and (if registration is enabled) create-inbox form. When `REGISTRATION_ENABLED` is `false`, the create form is hidden and `POST /` returns 404.
 2. **Login (`/login`)** — Address + password. Sets a session cookie.
 3. **Inbox (`/inbox`)** — Requires auth. Lists emails (newest first, paginated). Shows subject, from, date. Click to view.
 4. **Email detail (`/inbox/emails/:id`)** — Full email view (text or HTML body). List of attachments with download links. Delete button.
@@ -171,8 +172,21 @@ When an inbox has a webhook URL configured and an email is received:
 If `ADMIN_USERNAME` and `ADMIN_PASSWORD` are set, an admin panel is available at `/admin`.
 
 - **Login (`/admin/login`)** — Admin username + password
-- **Dashboard (`/admin`)** — List all inboxes with disable/delete controls
+- **Dashboard (`/admin`)** — List all inboxes with disable/delete controls; create new inboxes (address + password). When an inbox is created from the dashboard, the new inbox **API key** is shown once and must be copied then (it is not shown again on refresh).
+- The dashboard shows a copyable **Admin API Key** (base64 of `username:password`) for use with the Admin API below.
 - Disabled inboxes ignore new emails and prevent API calls
+
+### Admin API
+
+Authenticate with **HTTP Basic**: use the Admin API Key as the Basic credential (i.e. `Authorization: Basic <base64(username:password)>`). You can copy the key from the admin dashboard.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/admin/api/inboxes` | Create an inbox. Body: `{ "address": "...", "password": "..." }`. Returns `201` with `{ "id", "address", "api_key" }`. The inbox API key is returned only in this response — store it securely. |
+| `DELETE` | `/admin/api/inboxes/:id` | Delete an inbox and its data. Returns `200` with `{ "ok": true }`. |
+
+- **401** — Missing or invalid Basic credentials  
+- **404** — Admin not configured, or inbox not found (for DELETE)
 
 ## Data Retention
 

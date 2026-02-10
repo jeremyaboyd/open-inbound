@@ -1,21 +1,45 @@
 <% 
-  var body = `
-    <h1>Open-Inbound</h1>
-    <p>Create a new inbox to start receiving emails.</p>
-    
-    <h2>Create Inbox</h2>
-    <form method="POST" action="/">
-      <label for="address">Address (local part only, e.g., "notifications"):</label>
-      <input type="text" id="address" name="address" required>
+  var loginForm = `
+    <h2>Login</h2>
+    <form method="POST" action="/login">
+      <label for="login_address">Address (local part):</label>
+      <input type="text" id="login_address" name="address" required placeholder="e.g. notifications">
       
-      <label for="password">Password:</label>
+      <label for="login_password">Password:</label>
+      <input type="password" id="login_password" name="password" required>
+      
+      <button type="submit">Login</button>
+    </form>
+  `;
+  
+  var registerForm = '';
+  if (typeof registrationEnabled !== 'undefined' && registrationEnabled) {
+    registerForm = `
+    <h2>Create Inbox</h2>
+    <p>Register a new inbox to receive emails at <code>your-address@` + (typeof domain !== 'undefined' ? esc(domain) : 'your-domain') + `</code>.</p>
+    <form method="POST" action="/">
+      <label for="address">Address (local part only):</label>
+      <input type="text" id="address" name="address" required placeholder="e.g. notifications">
+      
+      <label for="password">Password (min 8 characters):</label>
       <input type="password" id="password" name="password" required>
       
       <button type="submit">Create Inbox</button>
     </form>
+    `;
+  }
+  
+  var body = `
+    <h1>Open-Inbound</h1>
+    <p class="tagline">Inbound-only SMTP with a web UI and REST API. Create an inbox, receive mail, and use the API or webhooks in your apps.</p>
     
-    <p><a href="/login">Login to existing inbox</a></p>
+    <div class="home-forms">
+      <section class="home-form-section">
+        ` + loginForm + `
+      </section>
+      ` + (registerForm ? '<section class="home-form-section">' + registerForm + '</section>' : '') + `
+    </div>
   `;
-  var title = 'Open-Inbound - Create Inbox';
+  var title = 'Open-Inbound';
 %>
 <%- include('layout', { body, title }) %>

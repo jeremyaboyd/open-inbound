@@ -25,6 +25,9 @@ const loginLimiter = createRateLimiter({ windowMs: 15 * 60 * 1000, max: 20, mess
 const ADDRESS_RE = /^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/;
 const MIN_PASSWORD_LENGTH = 8;
 
+// Registration can be disabled via env (default: enabled)
+const REGISTRATION_ENABLED = process.env.REGISTRATION_ENABLED !== 'false';
+
 // Auth middleware for inbox routes
 async function requireInboxAuth(req, res, next) {
   if (!req.session.inboxId) {
@@ -46,32 +49,40 @@ async function requireInboxAuth(req, res, next) {
   next();
 }
 
-// Home page - create inbox or login
+// Home page - developer-facing landing with login and optional register
 router.get('/', (req, res) => {
-  res.render('home');
+  res.render('home', {
+    registrationEnabled: REGISTRATION_ENABLED,
+    error: req.query.error,
+    domain: process.env.DOMAIN || 'localhost'
+  });
 });
 
 router.post('/', registerLimiter, async (req, res) => {
+  if (!REGISTRATION_ENABLED) {
+    return res.status(404).send('Not Found');
+  }
+
   const { address, password } = req.body;
 
   if (!address || !password) {
-    return res.render('home', { error: 'Address and password are required' });
+    return res.render('home', { registrationEnabled: true, error: 'Address and password are required' });
   }
 
   // Validate address format
   if (!ADDRESS_RE.test(address)) {
-    return res.render('home', { error: 'Address must start with a letter or number and contain only letters, numbers, dots, hyphens, or underscores (max 64 characters).' });
+    return res.render('home', { registrationEnabled: true, error: 'Address must start with a letter or number and contain only letters, numbers, dots, hyphens, or underscores (max 64 characters).' });
   }
 
   // Validate password strength
   if (password.length < MIN_PASSWORD_LENGTH) {
-    return res.render('home', { error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` });
+    return res.render('home', { registrationEnabled: true, error: `Password must be at least ${MIN_PASSWORD_LENGTH} characters.` });
   }
 
   // Check if inbox already exists
   const existing = await findInboxByAddress(address);
   if (existing) {
-    return res.render('home', { error: 'Inbox already exists' });
+    return res.render('home', { registrationEnabled: true, error: 'Inbox already exists' });
   }
 
   // Create inbox
@@ -83,7 +94,7 @@ router.post('/', registerLimiter, async (req, res) => {
     res.redirect('/login?created=1');
   } catch (error) {
     console.error('Error creating inbox:', error);
-    res.render('home', { error: 'Failed to create inbox' });
+    res.render('home', { registrationEnabled: true, error: 'Failed to create inbox' });
   }
 });
 
