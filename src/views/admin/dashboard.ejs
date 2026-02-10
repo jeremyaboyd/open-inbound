@@ -1,4 +1,21 @@
 <% 
+  var errorMsg = '';
+  if (typeof error !== 'undefined' && error) {
+    var messages = { address_and_password_required: 'Address and password are required.', invalid_address: 'Address must start with a letter or number and contain only letters, numbers, dots, hyphens, or underscores (max 64 characters).', password_too_short: 'Password must be at least 8 characters.', inbox_exists: 'An inbox with this address already exists.', create_failed: 'Failed to create inbox.' };
+    errorMsg = '<div class="error">' + (messages[error] || error) + '</div>';
+  }
+  
+  var createdPanel = '';
+  if (typeof createdInboxApiKey !== 'undefined' && createdInboxApiKey) {
+    createdPanel = `
+    <div class="success created-inbox-panel">
+      <strong>Inbox created:</strong> ` + (typeof createdInboxAddress !== 'undefined' ? esc(createdInboxAddress) : '') + `
+      <p>API key (shown once — copy it now):</p>
+      <pre class="api-key-display" id="created-api-key"><code>` + esc(createdInboxApiKey) + `</code></pre>
+      <button type="button" class="btn copy-api-key-btn" onclick="var btn=this; navigator.clipboard.writeText(document.getElementById('created-api-key').textContent); btn.textContent='Copied!'; setTimeout(function(){ btn.textContent='Copy'; }, 2000);">Copy</button>
+    </div>`;
+  }
+  
   var inboxRows = '';
   if (inboxes.length > 0) {
     inboxRows = inboxes.map(function(inbox) {
@@ -15,6 +32,29 @@
     inboxTable = '<table><thead><tr><th>Address</th><th>Created</th><th>Status</th><th>Emails</th><th>Actions</th></tr></thead><tbody>' + inboxRows + '</tbody></table>';
   }
   
+  var adminApiKeyBlock = '';
+  if (typeof adminApiKey !== 'undefined' && adminApiKey) {
+    adminApiKeyBlock = `
+  <section class="admin-api-key-section">
+    <h2>Admin API Key</h2>
+    <p>Use for the Admin API with <code>Authorization: Basic &lt;key&gt;</code>. Copy and store securely.</p>
+    <pre class="api-key-display" id="admin-api-key"><code>` + esc(adminApiKey) + `</code></pre>
+    <button type="button" class="btn copy-api-key-btn" onclick="var b=this; navigator.clipboard.writeText(document.getElementById('admin-api-key').textContent); b.textContent='Copied!'; setTimeout(function(){ b.textContent='Copy'; }, 2000);">Copy</button>
+  </section>`;
+  }
+  
+  var createForm = `
+  <section class="admin-create-inbox">
+    <h2>Create Inbox</h2>
+    <form method="POST" action="/admin/inboxes">
+      <label for="new_address">Address (local part):</label>
+      <input type="text" id="new_address" name="address" required placeholder="e.g. notifications">
+      <label for="new_password">Password (min 8 characters):</label>
+      <input type="password" id="new_password" name="password" required>
+      <button type="submit">Create Inbox</button>
+    </form>
+  </section>`;
+  
   var body = `
     <div class="nav">
       <a href="/admin">Dashboard</a>
@@ -25,6 +65,9 @@
     
     <h1>Admin Dashboard</h1>
     
+    ` + errorMsg + (adminApiKeyBlock || '') + createdPanel + createForm + `
+    
+    <h2>Inboxes</h2>
     ` + inboxTable;
   var title = 'Admin Dashboard';
 %>
